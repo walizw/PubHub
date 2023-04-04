@@ -59,6 +59,21 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
     act.object = follow_activity["object"]
     act.save()
 
+    # TODO: Following should be updated after receiving the Accept
+    # Add one to `following'
+    user.following += 1
+    user.save()
+
+    # Is the followed user local?
+    if external_url.split("/")[2] == settings.AP_HOST:
+        # Get the user
+        followed_user = ActivityUser.objects.get(
+            username=external_url.split("/")[-1])
+
+        # Add the user to the followers
+        followed_user.followers += 1
+        followed_user.save()
+
     return True
 
 
@@ -96,5 +111,24 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     req = build_signed_request(
         user, external_inbox, unfollow_activity)
 
-    print(req.status_code)
-    return req.status_code >= 200 and req.status_code < 300
+    if req.status_code < 200 or req.status_code >= 300:
+        return False
+
+    # Delete the activity
+    act[0].delete()
+
+    # Remove one from `following'
+    user.following -= 1
+    user.save()
+
+    # Is the unfollowed user local?
+    if external_url.split("/")[2] == settings.AP_HOST:
+        # Get the user
+        followed_user = ActivityUser.objects.get(
+            username=external_url.split("/")[-1])
+
+        # Remove the user from the followers
+        followed_user.followers -= 1
+        followed_user.save()
+
+    return True
