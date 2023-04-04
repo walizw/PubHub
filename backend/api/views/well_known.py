@@ -27,9 +27,10 @@ class WellKnownAPIView (generics.GenericAPIView):
                 {
                     "rel": "self",
                     "type": "application/activity+json",
-                    "href": f"{settings.AP_HOST}/api/v1/users/{acct_name[0]}"
+                    "href": f"https://{settings.AP_HOST}/api/v1/users/{acct_name[0]}"
                 }
             ]
         })
-        res.headers["Content-Type"] = "application/jrd+json"
+        # TODO: Fix the content type in the local webfinger
+        res["Content-Type"] = "application/jrd+json"
         return res

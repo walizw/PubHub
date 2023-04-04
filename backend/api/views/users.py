@@ -5,6 +5,9 @@ from django.conf import settings
 
 from ..models import ActivityUser
 
+from ..utils import discovery
+from ..utils import users as ap_users
+
 
 class UserAPIView (generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
@@ -21,20 +24,20 @@ class UserAPIView (generics.GenericAPIView):
                 "https://www.w3.org/ns/activitystreams",
                 "https://w3id.org/security/v1"
             ],
-            "id": settings.AP_HOST + "/api/v1/users/" + username,
+            "id": "https://" + settings.AP_HOST + "/api/v1/users/" + username,
             "type": "Person",
             "preferredUsername": username,
-            "inbox": settings.AP_HOST + "/api/v1/users/" + username + "/inbox",
-            "outbox": settings.AP_HOST + "/api/v1/users/" + username + "/outbox",
-            "followers": settings.AP_HOST + "/api/v1/users/" + username + "/followers",
-            "following": settings.AP_HOST + "/api/v1/users/" + username + "/following",
+            "inbox": "https://" + settings.AP_HOST + "/api/v1/users/" + username + "/inbox",
+            "outbox": "https://" + settings.AP_HOST + "/api/v1/users/" + username + "/outbox",
+            "followers": "https://" + settings.AP_HOST + "/api/v1/users/" + username + "/followers",
+            "following": "https://" + settings.AP_HOST + "/api/v1/users/" + username + "/following",
             "publicKey": {
-                "id": settings.AP_HOST + "/api/v1/users/" + username + "#main-key",
-                "owner": settings.AP_HOST + "/api/v1/users/" + username,
+                "id": "https://" + settings.AP_HOST + "/api/v1/users/" + username + "#main-key",
+                "owner": "https://" + settings.AP_HOST + "/api/v1/users/" + username,
                 "publicKeyPem": users[0].pub_key,
             },
             "endpoints": {
-                "sharedInbox": settings.AP_HOST + "/api/v1/inbox"
+                "sharedInbox": "https://" + settings.AP_HOST + "/api/v1/inbox"
             }
         }, headers={"Content-Type": "application/activity+json"}, status=status.HTTP_200_OK)
 
@@ -69,7 +72,28 @@ class OutboxAPIView (generics.GenericAPIView):
         if request.data.get("type") == "Create":
             return Response("TODO: Create", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Follow":
-            return Response("TODO: Follow", status=status.HTTP_200_OK)
+            user = request.data.get("to")
+            host = None
+
+            if user is None:
+                return Response("Malformed request", status=status.HTTP_200_OK)
+
+            # check if the user is @name@host or just @name
+            if len(user.split("@")) == 3:
+                host = user.split("@")[2]
+                user = user.split("@")[1]
+            elif len(user.split("@")) == 2:
+                user = user.split("@")[1]
+            else:
+                return Response("Malformed request", status=status.HTTP_200_OK)
+
+            user_data = discovery.discover_user(user, host)
+            if user_data is None:
+                return Response("User not found", status=status.HTTP_200_OK)
+
+            if ap_users.follow(user_data):
+                return Response("Followed", status=status.HTTP_200_OK)
+
         elif request.data.get("type") == "Unfollow":
             return Response("TODO: Unfollow", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Accept":

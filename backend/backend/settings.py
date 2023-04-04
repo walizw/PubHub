@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = "django-insecure-1^o4v$e**7^ut$pkq+3s5zk_d5+vlpiv09qbw0#jq(f8r_!df-
 DEBUG = True
 
 # The host used for decentralisation
-AP_HOST = "https://walizw-studious-tribble-v9q6gqxpwp9h6qgj-8000.preview.app.github.dev"
+AP_HOST = "walizw-studious-tribble-v9q6gqxpwp9h6qgj-8000.preview.app.github.dev"
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -73,6 +74,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ]
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
 
 ROOT_URLCONF = "backend.urls"
