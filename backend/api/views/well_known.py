@@ -31,6 +31,6 @@ class WellKnownAPIView (generics.GenericAPIView):
                 }
             ]
         })
-        # TODO: Fix the content type in the local webfinger
+
         res["Content-Type"] = "application/jrd+json"
         return res

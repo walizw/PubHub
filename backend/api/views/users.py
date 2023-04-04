@@ -74,7 +74,6 @@ class OutboxAPIView (generics.GenericAPIView):
         if request.user != users[0]:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        # TODO: Post to outbox
         if request.data.get("type") == "Create":
             return Response("TODO: Create", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Follow":
