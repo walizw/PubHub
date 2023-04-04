@@ -1,0 +1,6 @@
+cryptography==40.0.1
+Django==4.1.7
+django-cors-headers==3.14.0
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.2.2
+requests==2.28.2

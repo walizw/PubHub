@@ -25,8 +25,12 @@ SECRET_KEY = "django-insecure-1^o4v$e**7^ut$pkq+3s5zk_d5+vlpiv09qbw0#jq(f8r_!df-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# The host used for decentralisation
+AP_HOST = "https://walizw-studious-tribble-v9q6gqxpwp9h6qgj-8000.preview.app.github.dev"
+
 ALLOWED_HOSTS = [
     "localhost",
+    "127.0.0.1",
     "https://walizw-studious-tribble-v9q6gqxpwp9h6qgj-8000.preview.app.github.dev"
 ]
 
@@ -64,6 +68,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ]
+}
 
 ROOT_URLCONF = "backend.urls"
 

@@ -1,6 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
 
+from django.conf import settings
+
 from ..models import ActivityUser
 
 
@@ -13,19 +15,21 @@ class WellKnownAPIView (generics.GenericAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # check if the account exists
-        acct_name = request.GET.get("resource")[5:].split("@")[0]
-        users = ActivityUser.objects.filter(username=acct_name)
+        acct_name = request.GET.get("resource")[5:].split("@")
+        users = ActivityUser.objects.filter(username=acct_name[0])
         if len(users) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # return the webfinger
-        return Response({
-            "subject": "acct:" + acct_name + "@" + request.get_host(),
+        res = Response({
+            "subject": f"acct:{acct_name[0]}@{acct_name[1]}",
             "links": [
                 {
                     "rel": "self",
                     "type": "application/activity+json",
-                    "href": request.build_absolute_uri("/api/v1/users/" + acct_name)
+                    "href": f"{settings.AP_HOST}/api/v1/users/{acct_name[0]}"
                 }
             ]
-        }, headers={"Content-Type": "application/jrd+json"}, status=status.HTTP_200_OK)
+        })
+        res.headers["Content-Type"] = "application/jrd+json"
+        return res
