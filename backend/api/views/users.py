@@ -79,18 +79,9 @@ class OutboxAPIView (generics.GenericAPIView):
             return Response("TODO: Create", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Follow":
             user = request.data.get("to")
-            host = None
+            user, host = ap_users.parse_user(user)
 
-            if user is None:
-                return Response("Malformed request", status=status.HTTP_200_OK)
-
-            # check if the user is @name@host or just @name
-            if len(user.split("@")) == 3:
-                host = user.split("@")[2]
-                user = user.split("@")[1]
-            elif len(user.split("@")) == 2:
-                user = user.split("@")[1]
-            else:
+            if not user:
                 return Response("Malformed request", status=status.HTTP_200_OK)
 
             user_data = discovery.discover_user(user, host)
@@ -100,7 +91,18 @@ class OutboxAPIView (generics.GenericAPIView):
             if ap_users.follow(users[0], user_data):
                 return Response("Followed", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Unfollow":
-            return Response("TODO: Unfollow", status=status.HTTP_200_OK)
+            user = request.data.get("to")
+            user, host = ap_users.parse_user(user)
+
+            if not user:
+                return Response("Malformed request", status=status.HTTP_200_OK)
+
+            user_data = discovery.discover_user(user, host)
+            if user_data is None:
+                return Response("User not found", status=status.HTTP_200_OK)
+
+            if ap_users.unfollow(users[0], user_data):
+                return Response("Unfollowed", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Accept":
             return Response("TODO: Accept", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Reject":
