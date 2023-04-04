@@ -19,7 +19,7 @@ class UserAPIView (generics.GenericAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # return the user
-        return Response({
+        res = Response({
             "@context": [
                 "https://www.w3.org/ns/activitystreams",
                 "https://w3id.org/security/v1"
@@ -39,16 +39,22 @@ class UserAPIView (generics.GenericAPIView):
             "endpoints": {
                 "sharedInbox": "https://" + settings.AP_HOST + "/api/v1/inbox"
             }
-        }, headers={"Content-Type": "application/activity+json"}, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
+
+        res.content_type = "application/activity+json"
+        return res
 
 
 class InboxAPIView (generics.GenericAPIView):
+    media_type = "application/activity+json"
+
     def get(self, request, *args, **kwargs):
         # TODO: Get inbox
         return Response("TODO: This", status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        # TODO: Post to inbox
+        # print the request
+        print(request.data)
         return Response("TODO: This", status=status.HTTP_200_OK)
 
 
@@ -91,9 +97,8 @@ class OutboxAPIView (generics.GenericAPIView):
             if user_data is None:
                 return Response("User not found", status=status.HTTP_200_OK)
 
-            if ap_users.follow(user_data):
+            if ap_users.follow(users[0], user_data):
                 return Response("Followed", status=status.HTTP_200_OK)
-
         elif request.data.get("type") == "Unfollow":
             return Response("TODO: Unfollow", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Accept":

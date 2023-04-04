@@ -8,6 +8,8 @@ urlpatterns = [
          views.WellKnownAPIView.as_view(), name="well-known"),
 
     path("api/v1/users/<str:username>", views.UserAPIView.as_view(), name="user"),
+    path("api/v1/users/<str:username>#main-key",
+         views.UserAPIView.as_view(), name="user-key"),
     path("api/v1/users/<str:username>/inbox",
          views.InboxAPIView.as_view(), name="inbox"),
     path("api/v1/users/<str:username>/outbox",

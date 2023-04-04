@@ -8,7 +8,7 @@ def discover_user(name: str, host: str) -> dict:
 
     req = requests.get(
         f"https://{host}/.well-known/webfinger?resource=acct:{name}@{host}", headers={
-            "Accept": "application/activity+json"
+            "Accept": "application/jrd+json"
         }, timeout=5)
 
     if req.status_code != 200:

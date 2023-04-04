@@ -10,7 +10,7 @@ class Activity(models.Model):
     to = models.TextField(null=True)
     cc = models.TextField(null=True)
 
-    # TODO: There should be a better way to store dictionaries
+    # TODO: There should be a better way to store dictionaries (if needed)
     object = models.TextField(null=True)
 
     content = models.TextField(null=True)
