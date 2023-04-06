@@ -45,12 +45,6 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
     external_inbox = external_url + \
         "inbox" if external_url[-1] == "/" else external_url + "/inbox"
 
-    req = build_signed_request(
-        user, external_inbox, follow_activity)
-
-    if req.status_code < 200 or req.status_code >= 300:
-        return False
-
     # Create the activity
     act = Activity()
     act.id = follow_activity["id"]
@@ -59,20 +53,11 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
     act.object = follow_activity["object"]
     act.save()
 
-    # TODO: Following should be updated after receiving the Accept
-    # Add one to `following'
-    user.following += 1
-    user.save()
+    req = build_signed_request(
+        user, external_inbox, follow_activity)
 
-    # Is the followed user local?
-    if external_url.split("/")[2] == settings.AP_HOST:
-        # Get the user
-        followed_user = ActivityUser.objects.get(
-            username=external_url.split("/")[-1])
-
-        # Add the user to the followers
-        followed_user.followers += 1
-        followed_user.save()
+    if req.status_code < 200 or req.status_code >= 300:
+        return False
 
     return True
 
@@ -121,14 +106,51 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     user.following -= 1
     user.save()
 
-    # Is the unfollowed user local?
-    if external_url.split("/")[2] == settings.AP_HOST:
-        # Get the user
-        followed_user = ActivityUser.objects.get(
-            username=external_url.split("/")[-1])
+    return True
 
-        # Remove the user from the followers
-        followed_user.followers -= 1
-        followed_user.save()
+
+def send_accept(user: ActivityUser, activity: dict) -> bool:
+    accept_activity = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": f"https://{settings.AP_HOST}/api/v1/users/{user.username}/accept/{str(uuid.uuid4())}",
+        "type": "Accept",
+        "actor": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
+        "object": activity
+    }
+
+    external_inbox = activity["actor"] + \
+        "inbox" if activity["actor"][-1] == "/" else activity["actor"] + "/inbox"
+
+    req = build_signed_request(
+        user, external_inbox, accept_activity)
+
+    if req.status_code < 200 or req.status_code >= 300:
+        return False
+
+    # Create the activity
+    act = Activity()
+    act.id = accept_activity["id"]
+    act.type = accept_activity["type"]
+    act.actor = accept_activity["actor"]
+    act.object = accept_activity["object"]
+    act.save()
+
+    return True
+
+
+def process_accept(user: ActivityUser, activity: dict) -> bool:
+    # Get the activity where `user' followed `external_url'
+    act = Activity.objects.filter(id=activity["object"]["id"])
+
+    if len(act) == 0:
+        print("Activity not found")
+        return False
+
+    if activity["object"]["type"] == "Follow":
+        # Add one to `following'
+        user.following += 1
+        user.save()
+    else:
+        return False
 
     return True

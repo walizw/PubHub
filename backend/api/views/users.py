@@ -8,6 +8,8 @@ from ..models import ActivityUser
 from ..utils import discovery
 from ..utils import users as ap_users
 
+import json
+
 
 class UserAPIView (generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
@@ -54,8 +56,32 @@ class InboxAPIView (generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         # print the request
-        print(request.data)
-        return Response("TODO: This", status=status.HTTP_200_OK)
+        print(f"Posted to inbox:\n{request.data}")
+
+        username = kwargs.get("username")
+        users = ActivityUser.objects.filter(username=username)
+
+        if len(users) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        act = json.loads(request.data.decode("utf-8"))
+
+        if act.get("type") == "Follow":
+            users[0].followers += 1
+            users[0].save()
+
+            # send an accept request
+            if not ap_users.send_accept(users[0], act):
+                return Response("Error sending accept", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response("Followed", status=status.HTTP_200_OK)
+        elif act.get("type") == "Accept":
+            if not ap_users.process_accept(users[0], act):
+                return Response("Error processing accept", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response("Accepted", status=status.HTTP_200_OK)
+
+        return Response("Malformed request", status=status.HTTP_400_BAD_REQUEST)
 
 
 class OutboxAPIView (generics.GenericAPIView):
