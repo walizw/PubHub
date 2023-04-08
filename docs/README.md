@@ -4,38 +4,21 @@ BasicPub is a project meant to be a complete implementation of the ActivityPub
 federalisation protocol using the [Django](https://www.djangoproject.com/) web
 framework.
 
-## Installation
-
-If you want to install BasicPub to use it locally, you first have to clone the
-repository:
-
-```bash
-git clone https://github.com/walizw/BasicPub.git
-```
-
-Then, you have to install the dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Finally, you can run the server:
-
-```bash
-cd BasicPub/backend
-python manage.py runserver
-```
+## Running
 
 Note that before you want to actually use this and communicate with other
 servers there are several configurations in the `backend/settings.py` file that
 you might want to change:
 
 - `ALLOWED_HOSTS`: This is a list of hosts that are allowed to access the
-  server. You should add the domain name of your server here.
+  server. You should add your domain name here.
 - `CSRF_TRUSTED_ORIGINS`: Might not be necessary, but you also might want to
-  add the domain name of your server here.
+  add your domain name here.
 - `AP_HOST`: This is the domain name of your server. It is used to generate
-  the `id` of the server.
+  its `id`. This is probably the most important setting you have to change.
+- `CORS_ORIGIN_ALLOW_ALL`: This is a boolean that determines if all origins
+  are allowed to access the API. You probably want to change this to `False`
+  and add your domain name to the `CORS_ORIGIN_WHITELIST` setting.
 
 And you probably want to change the JWT settings as well.
 
