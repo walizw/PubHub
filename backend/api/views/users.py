@@ -3,12 +3,13 @@ from rest_framework import generics, status
 
 from django.conf import settings
 
-from ..models import ActivityUser
+from ..models import ActivityUser, Activity
 
 from ..utils import discovery
 from ..utils import users as ap_users
 
 import json
+import math
 
 
 class UserAPIView (generics.GenericAPIView):
@@ -142,11 +143,83 @@ class OutboxAPIView (generics.GenericAPIView):
 
 class FollowersAPIView (generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
-        # TODO: Get followers
-        return Response("TODO: This", status=status.HTTP_200_OK)
+        username = kwargs.get("username")
+        user = ActivityUser.objects.filter(username=username)
+        if len(user) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        total_followers = user[0].followers
+        followers_per_page = 30
+
+        pages = math.ceil(total_followers / followers_per_page)
+        if not request.GET.get("page"):
+            return Response({
+                "@context": "https://www.w3.org/ns/activitystreams",
+                "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
+                "type": "OrderedCollection",
+                "totalItems": pages,
+                "first": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page=1",
+                "last": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={pages}"
+            }, status=status.HTTP_200_OK)
+
+        page = int(request.GET.get("page"))
+        if page > pages or page == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        followers = Activity.objects.filter(type="Follow", object=f"https://{settings.AP_HOST}/api/v1/users/{username}").order_by(
+            "-id")[followers_per_page * (page - 1):followers_per_page * page]
+
+        ordered_items = []
+        for follower in followers:
+            ordered_items.append(follower.actor)
+
+        return Response({
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page}",
+            "type": "OrderedCollectionPage",
+            "totalItems": total_followers,
+            "partOf": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
+            "orderedItems": ordered_items
+        }, status=status.HTTP_200_OK)
 
 
 class FollowingAPIView (generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
-        # TODO: Get following
-        return Response("TODO: This", status=status.HTTP_200_OK)
+        username = kwargs.get("username")
+        user = ActivityUser.objects.filter(username=username)
+        if len(user) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        total_following = user[0].following
+        items_per_page = 30
+
+        pages = math.ceil(total_following / items_per_page)
+        if not request.GET.get("page"):
+            return Response({
+                "@context": "https://www.w3.org/ns/activitystreams",
+                "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/following",
+                "type": "OrderedCollection",
+                "totalItems": pages,
+                "first": f"https://{settings.AP_HOST}/api/v1/users/{username}/following?page=1",
+                "last": f"https://{settings.AP_HOST}/api/v1/users/{username}/following?page={pages}"
+            }, status=status.HTTP_200_OK)
+
+        page = int(request.GET.get("page"))
+        if page > pages or page == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        follows = Activity.objects.filter(type="Follow", actor=f"https://{settings.AP_HOST}/api/v1/users/{username}").order_by(
+            "-id")[items_per_page * (page - 1):items_per_page * page]
+
+        ordered_items = []
+        for follow in follows:
+            ordered_items.append(follow.object)
+
+        return Response({
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page}",
+            "type": "OrderedCollectionPage",
+            "totalItems": total_following,
+            "partOf": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
+            "orderedItems": ordered_items
+        }, status=status.HTTP_200_OK)
