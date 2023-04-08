@@ -80,6 +80,11 @@ class InboxAPIView (generics.GenericAPIView):
                 return Response("Error processing accept", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 return Response("Accepted", status=status.HTTP_200_OK)
+        elif act.get("type") == "Undo":
+            if not ap_users.process_undo(users[0], act):
+                return Response("Error processing undo", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response("Undo", status=status.HTTP_200_OK)
 
         return Response("Malformed request", status=status.HTTP_400_BAD_REQUEST)
 

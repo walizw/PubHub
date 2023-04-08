@@ -42,6 +42,9 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
         "object": external_url
     }
 
+    if is_following(follow_activity["actor"], follow_activity["object"]):
+        return False
+
     external_inbox = external_url + \
         "inbox" if external_url[-1] == "/" else external_url + "/inbox"
 
@@ -151,6 +154,33 @@ def process_accept(user: ActivityUser, activity: dict) -> bool:
         user.following += 1
         user.save()
     else:
+        return False
+
+    return True
+
+
+def process_undo(user: ActivityUser, activity: dict) -> bool:
+    # Get the activiy we want to undo
+    act = Activity.objects.filter(id=activity["object"]["id"])
+
+    if len(act) == 0:
+        print("Activity not found")
+        return False
+
+    if activity["object"]["type"] == "Follow":
+        # Remove one from `followers'
+        user.followers -= 1
+        user.save()
+    else:
+        return False
+
+    return True
+
+
+def is_following(actor: str, object: str) -> bool:
+    # Get the activity where `actor' followed `object'
+    act = Activity.objects.filter(actor=actor, object=object, type="Follow")
+    if len(act) == 0:
         return False
 
     return True
