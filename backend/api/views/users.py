@@ -134,10 +134,9 @@ class OutboxAPIView (generics.GenericAPIView):
 
             if ap_users.unfollow(users[0], user_data):
                 return Response("Unfollowed", status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Accept":
-            return Response("TODO: Accept", status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Reject":
-            return Response("TODO: Reject", status=status.HTTP_200_OK)
+        elif request.data.get("type") == "Note":
+            return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+
         return Response("Malformed request", status=status.HTTP_200_OK)
 
 
@@ -157,7 +156,7 @@ class FollowersAPIView (generics.GenericAPIView):
                 "@context": "https://www.w3.org/ns/activitystreams",
                 "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
                 "type": "OrderedCollection",
-                "totalItems": pages,
+                "totalItems": total_followers,
                 "first": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page=1",
                 "last": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={pages}"
             }, status=status.HTTP_200_OK)
@@ -173,14 +172,22 @@ class FollowersAPIView (generics.GenericAPIView):
         for follower in followers:
             ordered_items.append(follower.actor)
 
-        return Response({
+        resp = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page}",
             "type": "OrderedCollectionPage",
             "totalItems": total_followers,
             "partOf": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
             "orderedItems": ordered_items
-        }, status=status.HTTP_200_OK)
+        }
+
+        if page != 1:
+            resp["prev"] = f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page - 1}"
+
+        if page != pages:
+            resp["next"] = f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page + 1}"
+
+        return Response(resp, status=status.HTTP_200_OK)
 
 
 class FollowingAPIView (generics.GenericAPIView):

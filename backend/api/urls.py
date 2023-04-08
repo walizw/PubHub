@@ -7,6 +7,8 @@ urlpatterns = [
     path(".well-known/webfinger",
          views.WellKnownAPIView.as_view(), name="well-known"),
 
+    path("api/v1/inbox", views.InstanceInboxAPIView.as_view(), name="instance-inbox"),
+
     path("api/v1/users/<str:username>", views.UserAPIView.as_view(), name="user"),
     path("api/v1/users/<str:username>#main-key",
          views.UserAPIView.as_view(), name="user-key"),
