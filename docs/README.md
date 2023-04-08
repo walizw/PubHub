@@ -100,3 +100,24 @@ activity.
     "to": "@username"
 }
 ```
+
+### Posting
+
+If you want to publish a post, you can perform a POST request to the outbox of
+the user that will create the post, with the following format:
+
+```json
+{
+    "type": "Note",
+    "content": "The note content goes here",
+    "tags": [
+      "tags",
+      "are",
+      "an",
+      "array"
+    ]
+}
+```
+
+There are some things that are still pendant to implement. Like polls and
+attachments.

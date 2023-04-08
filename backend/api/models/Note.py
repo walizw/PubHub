@@ -7,6 +7,6 @@ class Note (models.Model):
 
     content = models.TextField()
     published = models.DateTimeField()
-    tags = models.TextField()
+    tags = models.TextField(null=True, blank=True)
 
     # TODO: Handle attachments and mentions

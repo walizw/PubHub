@@ -1,11 +1,12 @@
 from .discovery import discover_user
 from .request import build_signed_request
 
-from ..models import ActivityUser, Activity
+from ..models import ActivityUser, Activity, DiscoveredInstances, Note
 
 from django.conf import settings
 
 import uuid
+from datetime import datetime
 
 
 def parse_user(user: str) -> tuple:
@@ -108,6 +109,55 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     # Remove one from `following'
     user.following -= 1
     user.save()
+
+    return True
+
+
+def post(user: ActivityUser, data: dict, to: str) -> bool:
+    post_id = f"https://{settings.AP_HOST}/api/v1/users/{user.username}/post/{str(uuid.uuid4())}"
+    context_id = f"https://{settings.AP_HOST}/api/v1/users/{user.username}/context/{str(uuid.uuid4())}"
+    published = datetime.now().isoformat()
+
+    post_activity = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "actor": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
+        "cc": to,
+        "context": context_id,
+        "directMessage": False,  # TODO: Direct message
+        "id": post_id,
+        "type": "Create",
+        "object": {
+            "actor": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
+            "attachment": [
+                # TODO: Attachments
+            ],
+            "tag": data["tags"],
+            "attributedTo": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
+            "cc": to,
+            "content": data["content"],
+            "context": context_id,
+            "conversation": context_id,
+            "id": post_id,
+            "published": published,
+            "type": "Note"
+        },
+        "published": published,
+        "to": [
+            "https://www.w3.org/ns/activitystreams#Public"
+        ]
+    }
+
+    note = Note ()
+    note.id = post_activity["object"]["id"]
+    note.actor = post_activity["object"]["actor"]
+    note.content = post_activity["object"]["content"]
+    note.published = post_activity["object"]["published"]
+    note.save()
+
+    discovered_instances = DiscoveredInstances.objects.all()
+    for instance in discovered_instances:
+        req = build_signed_request(user, instance.inbox, post_activity)
+        print(req.text, req.status_code)
 
     return True
 

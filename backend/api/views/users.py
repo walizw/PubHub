@@ -135,7 +135,13 @@ class OutboxAPIView (generics.GenericAPIView):
             if ap_users.unfollow(users[0], user_data):
                 return Response("Unfollowed", status=status.HTTP_200_OK)
         elif request.data.get("type") == "Note":
-            return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+            to = request.data.get("to")
+
+            if to is None:
+                to = [f"https://{settings.AP_HOST}/users/{username}/followers"]
+
+            if ap_users.post(users[0], request.data, to):
+                return Response("Posted", status=status.HTTP_200_OK)
 
         return Response("Malformed request", status=status.HTTP_200_OK)
 
