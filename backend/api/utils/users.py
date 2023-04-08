@@ -113,6 +113,16 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
 
 
 def send_accept(user: ActivityUser, activity: dict) -> bool:
+    act = Activity.objects.filter(id=activity["id"])
+
+    if len(act) == 0:
+        act = Activity()
+        act.id = activity["id"]
+        act.type = activity["type"]
+        act.actor = activity["actor"]
+        act.object = activity["object"]
+        act.save()
+
     accept_activity = {
         "@context": "https://www.w3.org/ns/activitystreams",
         "id": f"https://{settings.AP_HOST}/api/v1/users/{user.username}/accept/{str(uuid.uuid4())}",
@@ -142,12 +152,15 @@ def send_accept(user: ActivityUser, activity: dict) -> bool:
 
 
 def process_accept(user: ActivityUser, activity: dict) -> bool:
-    # Get the activity where `user' followed `external_url'
     act = Activity.objects.filter(id=activity["object"]["id"])
 
     if len(act) == 0:
-        print("Activity not found")
-        return False
+        act = Activity()
+        act.id = activity["object"]["id"]
+        act.type = activity["object"]["type"]
+        act.actor = activity["object"]["actor"]
+        act.object = activity["object"]["object"]
+        act.save()
 
     if activity["object"]["type"] == "Follow":
         # Add one to `following'
@@ -171,6 +184,8 @@ def process_undo(user: ActivityUser, activity: dict) -> bool:
         # Remove one from `followers'
         user.followers -= 1
         user.save()
+
+        act.delete()
     else:
         return False
 
