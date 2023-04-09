@@ -9,7 +9,7 @@ def discover_user(name: str, host: str) -> dict:
     # check if the instance is already discovered
     instances = DiscoveredInstances.objects.filter(url=host)
     instance = None
-    if len(instances) == 0:
+    if len(instances) == 0 and host:
         # discover the instance
         instance = DiscoveredInstances()
         instance.url = host

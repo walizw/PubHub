@@ -1,7 +1,7 @@
 from .discovery import discover_user
 from .request import build_signed_request
 
-from ..models import ActivityUser, Activity, DiscoveredInstances, Note, Profile
+from ..models import ActivityUser, Activity, DiscoveredInstances, Note, Profile, Follow
 
 from django.conf import settings
 
@@ -105,6 +105,19 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
 
     # Delete the activity
     act[0].delete()
+
+    # delete the follow activity
+    actor_profile = Profile.objects.filter(id=unfollow_activity["actor"])
+    object_profile = Profile.objects.filter(
+        id=unfollow_activity["object"]["object"])
+    if len(actor_profile) == 0 or len(object_profile) == 0:
+        return False
+
+    follow = Follow.objects.filter(
+        actor=actor_profile[0], object=object_profile[0])
+    if len(follow) == 0:
+        return False
+    follow.delete()
 
     # Remove one from `following'
     user.following -= 1
@@ -219,7 +232,23 @@ def process_accept(user: ActivityUser, activity: dict) -> bool:
         act.object = activity["object"]["object"]
         act.save()
 
+    # when the user receives a follow accept, add one to following.
     if activity["object"]["type"] == "Follow":
+        actor_profile = Profile.objects.filter(id=activity["object"]["actor"])
+        object_profile = Profile.objects.filter(
+            id=activity["object"]["object"])
+        if len(actor_profile) == 0 or len(object_profile) == 0:
+            return False
+
+        actor_profile = actor_profile[0]
+        object_profile = object_profile[0]
+
+        follow = Follow()
+        follow.id = activity["object"]["id"]
+        follow.actor = actor_profile
+        follow.object = object_profile
+        follow.save()
+
         # Add one to `following'
         user.following += 1
         user.save()
@@ -238,6 +267,22 @@ def process_undo(user: ActivityUser, activity: dict) -> bool:
         return False
 
     if activity["object"]["type"] == "Follow":
+        actor_profile = Profile.objects.filter(id=activity["object"]["actor"])
+        object_profile = Profile.objects.filter(
+            id=activity["object"]["object"])
+        if len(actor_profile) == 0 or len(object_profile) == 0:
+            return False
+
+        actor_profile = actor_profile[0]
+        object_profile = object_profile[0]
+        follow = Follow.objects.filter(
+            actor=actor_profile, object=object_profile)
+        if len(follow) == 0:
+            return False
+
+        follow = follow[0]
+        follow.delete()
+
         # Remove one from `followers'
         user.followers -= 1
         user.save()

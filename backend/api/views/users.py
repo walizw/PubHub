@@ -3,7 +3,7 @@ from rest_framework import generics, status
 
 from django.conf import settings
 
-from ..models import ActivityUser, Activity
+from ..models import ActivityUser, Activity, Profile, Follow
 
 from ..utils import discovery
 from ..utils import users as ap_users
@@ -70,6 +70,20 @@ class InboxAPIView (generics.GenericAPIView):
         if act.get("type") == "Follow":
             users[0].followers += 1
             users[0].save()
+
+            actor_profile = Profile.objects.filter(id=act.get("actor"))
+            object_profile = Profile.objects.filter(id=act.get("object"))
+            if len(actor_profile) == 0 or len(object_profile) == 0:
+                return False
+
+            actor_profile = actor_profile[0]
+            object_profile = object_profile[0]
+
+            follow = Follow()
+            follow.id = act.get("id")
+            follow.actor = actor_profile
+            follow.object = object_profile
+            follow.save()
 
             # send an accept request
             if not ap_users.send_accept(users[0], act):
