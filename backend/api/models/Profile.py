@@ -13,3 +13,6 @@ class Profile (models.Model):
 
     public_key = models.TextField()
     shared_inbox = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.preferred_username}"

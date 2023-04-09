@@ -126,7 +126,7 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     return True
 
 
-def post(user: ActivityUser, data: dict, to: str) -> bool:
+def post(user: ActivityUser, data: dict, to: str) -> str:
     post_id = f"https://{settings.AP_HOST}/api/v1/users/{user.username}/post/{str(uuid.uuid4())}"
     context_id = f"https://{settings.AP_HOST}/api/v1/users/{user.username}/context/{str(uuid.uuid4())}"
     published = datetime.now().isoformat()
@@ -163,7 +163,7 @@ def post(user: ActivityUser, data: dict, to: str) -> bool:
     # Get actor profile
     actor_profile = Profile.objects.filter(id=post_activity["object"]["actor"])
     if len(actor_profile) == 0:
-        return False
+        return ""
 
     actor_profile = actor_profile[0]
 
@@ -179,7 +179,7 @@ def post(user: ActivityUser, data: dict, to: str) -> bool:
         req = build_signed_request(user, instance.inbox, post_activity)
         print(req.text, req.status_code)
 
-    return True
+    return post_id
 
 
 def send_accept(user: ActivityUser, activity: dict) -> bool:

@@ -12,3 +12,6 @@ class Note (models.Model):
     tags = models.TextField(null=True, blank=True)
 
     # TODO: Handle attachments and mentions
+
+    def __str__(self):
+        return f"{self.actor.preferred_username} published \"{self.content}\""

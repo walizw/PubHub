@@ -12,4 +12,4 @@ class Follow (models.Model):
     date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.actor} follows {self.object}"
+        return f"{self.actor.preferred_username} followed {self.object.preferred_username}"

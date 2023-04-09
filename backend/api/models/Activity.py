@@ -2,6 +2,8 @@ from django.db import models
 
 
 class Activity(models.Model):
+    class Meta:
+        verbose_name_plural = "Activities"
     id = models.CharField(max_length=255, primary_key=True)
     type = models.CharField(max_length=255)
     actor = models.CharField(max_length=255)
@@ -18,3 +20,6 @@ class Activity(models.Model):
 
     published = models.DateTimeField(null=True)
     deleted = models.DateTimeField(null=True)
+
+    def __str__(self) -> str:
+        return f"{self.id} - {self.type} - {self.actor}"

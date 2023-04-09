@@ -119,5 +119,14 @@ the user that will create the post, with the following format:
 }
 ```
 
-There are some things that are still pendant to implement. Like polls and
-attachments.
+The response will look like this, in case the post was successfully created:
+
+```json
+{
+  "status": "success",
+  "id": "post-id-goes-here"
+}
+```
+
+**Note:** There are some things that are still pendant to implement. Like polls
+and attachments.

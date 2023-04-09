@@ -154,8 +154,15 @@ class OutboxAPIView (generics.GenericAPIView):
             if to is None:
                 to = [f"https://{settings.AP_HOST}/users/{username}/followers"]
 
-            if ap_users.post(users[0], request.data, to):
-                return Response("Posted", status=status.HTTP_200_OK)
+            post_id = ap_users.post(users[0], request.data, to)
+            if post_id != "":
+                # TODO: Change the format of all responses to be in JSON
+                # Like this post response, including a "status" field, and any
+                # other that might be needed.
+                return Response({
+                    "status": "success",
+                    "id": post_id
+                }, status=status.HTTP_200_OK)
 
         return Response("Malformed request", status=status.HTTP_200_OK)
 
