@@ -1,7 +1,7 @@
 from .discovery import discover_user
 from .request import build_signed_request
 
-from ..models import ActivityUser, Activity, DiscoveredInstances, Note
+from ..models import ActivityUser, Activity, DiscoveredInstances, Note, Profile
 
 from django.conf import settings
 
@@ -131,7 +131,7 @@ def post(user: ActivityUser, data: dict, to: str) -> bool:
             "attachment": [
                 # TODO: Attachments
             ],
-            "tag": data["tags"],
+            "tag": data["tags"] if "tags" in data else [],
             "attributedTo": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
             "cc": to,
             "content": data["content"],
@@ -147,9 +147,16 @@ def post(user: ActivityUser, data: dict, to: str) -> bool:
         ]
     }
 
-    note = Note ()
+    # Get actor profile
+    actor_profile = Profile.objects.filter(id=post_activity["object"]["actor"])
+    if len(actor_profile) == 0:
+        return False
+
+    actor_profile = actor_profile[0]
+
+    note = Note()
     note.id = post_activity["object"]["id"]
-    note.actor = post_activity["object"]["actor"]
+    note.actor = actor_profile
     note.content = post_activity["object"]["content"]
     note.published = post_activity["object"]["published"]
     note.save()

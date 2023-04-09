@@ -2,7 +2,7 @@ import requests
 
 from django.conf import settings
 
-from ..models import DiscoveredInstances
+from ..models import DiscoveredInstances, Profile
 
 
 def discover_user(name: str, host: str) -> dict:
@@ -27,18 +27,39 @@ def discover_user(name: str, host: str) -> dict:
         return None
 
     res = req.json()
-    if instance != None:
-        user_link = ""
-        for link in res.get("links"):
-            if link["rel"] == "self":
-                user_link = link["href"]
-                break
+    user_link = ""
+    for link in res.get("links"):
+        if link["rel"] == "self":
+            user_link = link["href"]
+            break
 
+    if instance != None:
         inbox_req = requests.get(user_link, headers={
             "Accept": "application/activity+json"
         }, timeout=5)
-        instance.inbox = inbox_req.json().get("endpoints")["sharedInbox"]
+        inbox_res = inbox_req.json()
+
+        instance.inbox = inbox_res.get("endpoints")["sharedInbox"]
         instance.save()
 
-    # print the response in plain text
+    profile = Profile.objects.filter(id=user_link)
+    if len(profile) == 0:
+        inbox_req = requests.get(user_link, headers={
+            "Accept": "application/activity+json"
+        }, timeout=5)
+        inbox_res = inbox_req.json()
+
+        # create the profile
+        profile = Profile()
+        profile.id = user_link
+        profile.preferred_username = inbox_res["preferredUsername"]
+        profile.followers = inbox_res["followers"]
+        profile.following = inbox_res["following"]
+        profile.inbox = inbox_res["inbox"]
+        profile.outbox = inbox_res["outbox"]
+        profile.public_key = inbox_res["publicKey"]["publicKeyPem"]
+        profile.shared_inbox = inbox_res.get("endpoints")["sharedInbox"]
+        profile.save()
+
+    # print the response
     return res
