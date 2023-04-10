@@ -182,6 +182,48 @@ def post(user: ActivityUser, data: dict, to: str) -> str:
     return post_id
 
 
+def delete_post(user: ActivityUser, post_id: str) -> bool:
+    post = Note.objects.filter(id=post_id)
+    if len(post) == 0:
+        return False
+
+    post = post[0]
+
+    # check that `user' is the author of the post
+    if post.actor.id != f"https://{settings.AP_HOST}/api/v1/users/{user.username}":
+        return False
+
+    delete_activity = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": f"{post_id}#delete",
+        "type": "Delete",
+        "actor": f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
+        "object": {
+            "id": post_id,
+            "type": "Tombstone",
+        },
+        "to": [
+            "https://www.w3.org/ns/activitystreams#Public"
+        ]
+    }
+
+    act = Activity()
+    act.id = delete_activity["id"]
+    act.type = delete_activity["type"]
+    act.actor = delete_activity["actor"]
+    act.object = delete_activity["object"]["id"]
+    act.save()
+
+    post.delete()
+
+    discovered_instances = DiscoveredInstances.objects.all()
+    for instance in discovered_instances:
+        req = build_signed_request(user, instance.inbox, delete_activity)
+        print(req.text, req.status_code)
+
+    return True
+
+
 def send_accept(user: ActivityUser, activity: dict) -> bool:
     act = Activity.objects.filter(id=activity["id"])
 

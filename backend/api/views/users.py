@@ -163,6 +163,19 @@ class OutboxAPIView (generics.GenericAPIView):
                     "status": "success",
                     "id": post_id
                 }, status=status.HTTP_200_OK)
+        elif request.data.get("type") == "Delete":
+            post_id = request.data.get("id")
+
+            if post_id is None:
+                return Response({
+                    "status": "error",
+                    "msg": "Malformed request"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if ap_users.delete_post(users[0], post_id):
+                return Response({
+                    "status": "success"
+                }, status=status.HTTP_200_OK)
 
         return Response("Malformed request", status=status.HTTP_200_OK)
 
