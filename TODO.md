@@ -1,0 +1,61 @@
+# TODO
+
+The following is a TODO list of PubHub:
+
+- [x] User registration and authentication
+    - [x] Keypair generated
+    - [x] Profile generated
+- [-] ActivityPub
+    - [-] Cryptography
+        - [x] All requests are signed
+        - [ ] Comprobate signatures when receiving activities
+    - [-] User Inbox
+        - [x] User can be followed
+        - [x] User can be unfollowed
+        - [ ] A post can be liked
+        - [ ] A post like can be undone
+        - [ ] A post can be announced
+        - [ ] A post announcement can be undone
+    - [-] User outbox
+        - [x] User can follow
+        - [x] User can unfollow
+        - [x] User can post
+        - [x] User can remove a post
+        - [ ] A post can be updated
+        - [ ] User can like
+        - [ ] User can remove a like
+        - [ ] User can announce
+        - [ ] User announce can be undone
+        - [ ] User can reply
+        - [ ] User can remove a reply
+    - [-] User profile
+        - [x] A user (even externals) have a profile
+        - [ ] Profile picture
+        - [ ] Profile banner
+        - [ ] Profile bio
+        - [ ] Profile metadata
+    - [-] Instance inbox
+        - [x] A post can be received
+        - [x] A post can be deleted
+        - [ ] A new user (Profile) can be received
+        - [ ] A user can be deleted
+        - [ ] A user can be updated
+        - [ ] A post can be updated
+        - [ ] A post can be replied
+- [-] Backend views
+    - [-] User
+        - [x] Login
+        - [x] Registration
+        - [ ] Newsfeed (posts from followed users)
+        - [ ] Profile update
+        - [ ] Profile view
+    - [ ] Posts
+        - [ ] Post view
+
+- [ ] Others
+    - [ ] Direct messages
+    - [ ] Notifications (basically, you can GET a user inbox)
+    - [ ] A user's profile can be private (an accept activity is not sent automatically)
+        - [ ] Requests can be accepted manually
+    - [ ] Users can be blocked
+    - [ ] Users' block can be undone
