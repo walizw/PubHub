@@ -107,17 +107,17 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     act[0].delete()
 
     # delete the follow activity
-    actor_profile = Profile.objects.filter(id=unfollow_activity["actor"])
-    object_profile = Profile.objects.filter(
-        id=unfollow_activity["object"]["object"])
-    if len(actor_profile) == 0 or len(object_profile) == 0:
-        return False
+    # actor_profile = Profile.objects.filter(id=unfollow_activity["actor"])
+    # object_profile = Profile.objects.filter(
+    #    id=unfollow_activity["object"]["object"])
+    # if len(actor_profile) == 0 or len(object_profile) == 0:
+    #    return False
 
-    follow = Follow.objects.filter(
-        actor=actor_profile[0], object=object_profile[0])
-    if len(follow) == 0:
-        return False
-    follow.delete()
+    # follow = Follow.objects.filter(
+    #    actor=actor_profile[0], object=object_profile[0])
+    # if len(follow) == 0:
+    #    return False
+    # follow.delete()
 
     # Remove one from `following'
     user.following -= 1
@@ -305,7 +305,6 @@ def process_undo(user: ActivityUser, activity: dict) -> bool:
     act = Activity.objects.filter(id=activity["object"]["id"])
 
     if len(act) == 0:
-        print("Activity not found")
         return False
 
     if activity["object"]["type"] == "Follow":

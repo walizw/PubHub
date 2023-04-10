@@ -120,10 +120,15 @@ class OutboxAPIView (generics.GenericAPIView):
         if request.user != users[0]:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        if request.data.get("type") == "Create":
+        print(request.data)
+
+        data = request.data if type(request.data) == dict else json.loads(
+            request.data.decode("utf-8"))
+
+        if data.get("type") == "Create":
             return Response("TODO: Create", status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Follow":
-            user = request.data.get("to")
+        elif data.get("type") == "Follow":
+            user = data.get("to")
             user, host = ap_users.parse_user(user)
 
             if not user:
@@ -135,8 +140,8 @@ class OutboxAPIView (generics.GenericAPIView):
 
             if ap_users.follow(users[0], user_data):
                 return Response("Followed", status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Unfollow":
-            user = request.data.get("to")
+        elif data.get("type") == "Unfollow":
+            user = data.get("to")
             user, host = ap_users.parse_user(user)
 
             if not user:
@@ -148,13 +153,13 @@ class OutboxAPIView (generics.GenericAPIView):
 
             if ap_users.unfollow(users[0], user_data):
                 return Response("Unfollowed", status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Note":
-            to = request.data.get("to")
+        elif data.get("type") == "Note":
+            to = data.get("to")
 
             if to is None:
                 to = [f"https://{settings.AP_HOST}/users/{username}/followers"]
 
-            post_id = ap_users.post(users[0], request.data, to)
+            post_id = ap_users.post(users[0], data, to)
             if post_id != "":
                 # TODO: Change the format of all responses to be in JSON
                 # Like this post response, including a "status" field, and any
@@ -163,8 +168,8 @@ class OutboxAPIView (generics.GenericAPIView):
                     "status": "success",
                     "id": post_id
                 }, status=status.HTTP_200_OK)
-        elif request.data.get("type") == "Delete":
-            post_id = request.data.get("id")
+        elif data.get("type") == "Delete":
+            post_id = data.get("id")
 
             if post_id is None:
                 return Response({
