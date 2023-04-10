@@ -130,3 +130,13 @@ The response will look like this, in case the post was successfully created:
 
 **Note:** There are some things that are still pendant to implement. Like polls
 and attachments.
+
+You can also delete a post, by posting the *Delete* activity type to a user's
+outbox with the post id:
+
+```bash
+{
+  "status": "Delete",
+  "id": "post-id-goes-here"
+}
+```

@@ -12,11 +12,19 @@ To get started clone the PubHub repository:
 git clone https://github.com/walizw/PubHub.git
 ```
 
-Install the dependencies:
+Create a virtual environment and activate it:
 
 ```bash
 cd PubHub
+python -m venv venv
+. venv/bin/activate
+```
+
+Finally, install the dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-And read the [docs](docs/) to set everything up.
+I recommend you reading the [docs](docs/) for more information on setting
+PubHub up.
