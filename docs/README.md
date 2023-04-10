@@ -26,6 +26,17 @@ And you probably want to change the JWT settings as well.
 
 ### Authentication
 
+To create an account, perform a POST request to `/api/v1/auth/register`, with
+the fields `username`, `email` and `password`:
+
+```json
+{
+  "username": "username",
+  "email": "email@domain.tld",
+  "password": "strong password here!"
+}
+```
+
 If you want to log-in you can perform a POST request to the
 `/api/v1/auth/login/`:
 

@@ -22,20 +22,21 @@ class ActivityUserManager(BaseUserManager):
 
         # Generate the keypair
         user.priv_key, user.pub_key = keypair_gen.generate_keypair()
-        user.save()
 
         # create a profile
         profile = Profile.objects.create(
-            id=f"https://{settings.AP_DOMAIN}/api/v1/users/{user.username}",
+            id=f"https://{settings.AP_HOST}/api/v1/users/{user.username}",
             preferred_username=user.username,
-            inbox=f"https://{settings.AP_DOMAIN}/api/v1/users/{user.username}/inbox",
-            outbox=f"https://{settings.AP_DOMAIN}/api/v1/users/{user.username}/outbox",
-            followers=f"https://{settings.AP_DOMAIN}/api/v1/users/{user.username}/followers",
-            following=f"https://{settings.AP_DOMAIN}/api/v1/users/{user.username}/following",
+            inbox=f"https://{settings.AP_HOST}/api/v1/users/{user.username}/inbox",
+            outbox=f"https://{settings.AP_HOST}/api/v1/users/{user.username}/outbox",
+            followers=f"https://{settings.AP_HOST}/api/v1/users/{user.username}/followers",
+            following=f"https://{settings.AP_HOST}/api/v1/users/{user.username}/following",
             public_key=user.pub_key,
-            shared_inbox=f"https://{settings.AP_DOMAIN}/api/v1/inbox",
+            shared_inbox=f"https://{settings.AP_HOST}/api/v1/inbox",
         )
+
         profile.save()
+        user.save()
 
         return user
 

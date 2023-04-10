@@ -46,20 +46,29 @@ class InstanceInboxAPIView (generics.GenericAPIView):
                 return Response("Posted", status=status.HTTP_201_CREATED)
         elif data_json["type"] == "Delete":
             # TODO: Delete external posts
-            post_id = data_json["object"]["id"]
-            post = Note.objects.get(id=post_id)
-            if post is None:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+            if type(data_json["object"]) != dict:
+                return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
 
-            # create and store the delete activity
-            act = Activity()
-            act.id = data_json["id"]
-            act.type = data_json["type"]
-            act.actor = data_json["actor"]
-            act.object = data_json["object"]
-            act.save()
+            # get the type of the object
+            object_type = data_json["object"]["type"]
 
-            # delete the post
-            post.delete()
+            if object_type == "Note":
+                post_id = data_json["object"]["id"]
+                post = Note.objects.get(id=post_id)
+                if post is None:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
+
+                # create and store the delete activity
+                act = Activity()
+                act.id = data_json["id"]
+                act.type = data_json["type"]
+                act.actor = data_json["actor"]
+                act.object = data_json["object"]
+                act.save()
+
+                # delete the post
+                post.delete()
+            else:
+                return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
             return Response("Deleted", status=status.HTTP_200_OK)
         return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
