@@ -61,4 +61,5 @@ class InstanceInboxAPIView (generics.GenericAPIView):
 
             # delete the post
             post.delete()
+            return Response("Deleted", status=status.HTTP_200_OK)
         return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
