@@ -211,7 +211,7 @@ def delete_post(user: ActivityUser, post_id: str) -> bool:
     act.id = delete_activity["id"]
     act.type = delete_activity["type"]
     act.actor = delete_activity["actor"]
-    act.object = delete_activity["object"]["id"]
+    act.object = delete_activity["object"]
     act.save()
 
     post.delete()

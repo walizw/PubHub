@@ -44,7 +44,21 @@ class InstanceInboxAPIView (generics.GenericAPIView):
                 note.save()
 
                 return Response("Posted", status=status.HTTP_201_CREATED)
-        elif act_json["type"] == "Delete":
+        elif data_json["type"] == "Delete":
             # TODO: Delete external posts
-            pass
+            post_id = data_json["object"]["id"]
+            post = Note.objects.get(id=post_id)
+            if post is None:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            # create and store the delete activity
+            act = Activity()
+            act.id = data_json["id"]
+            act.type = data_json["type"]
+            act.actor = data_json["actor"]
+            act.object = data_json["object"]
+            act.save()
+
+            # delete the post
+            post.delete()
         return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
