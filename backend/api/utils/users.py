@@ -119,6 +119,12 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     if len(object_profile) == 0:
         discovery.discover_by_user_link(unfollow_activity["object"]["object"])
 
+    # if the follow exists, delete it
+    follow = Follow.objects.filter(
+        actor=actor_profile[0], object=object_profile[0])
+    if len(follow) > 0:
+        follow[0].delete()
+
     # Remove one from `following'
     user.following -= 1
     user.save()

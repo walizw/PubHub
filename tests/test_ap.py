@@ -5,6 +5,12 @@ random_user = "@Midnight_SEA@blob.cat"
 
 OUTBOX_URL = "http://127.0.0.1:8000/api/v1/users/test/outbox"
 
+# TODO Improve tests
+# This tests should be much better (some things might require changes in the
+# backend), for example, when following we should retrieve the follow activity
+# id and query it to see if it was accepted and it exists. Also, when
+# unfollowing we should query the follow activity id and see if it was deleted.
+
 
 def get_access() -> str:
     req = requests.post(
