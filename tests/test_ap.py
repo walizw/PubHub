@@ -1,7 +1,9 @@
 import requests
 import time
 
-random_user = "@kaiiak@mastodon.social"
+random_user = "@Midnight_SEA@blob.cat"
+
+OUTBOX_URL = "http://127.0.0.1:8000/api/v1/users/test/outbox"
 
 
 def get_access() -> str:
@@ -16,124 +18,55 @@ def get_access() -> str:
     return res["access"]
 
 
-def test_follow():
-    access = get_access()
-
+def get_total_following():
     req = requests.get(
         "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
     res = req.json()
 
-    assert res["totalItems"] == 0
+    return res["totalItems"]
+
+
+def follow_unfollow(user: str, follow=True):
+    access = get_access()
 
     req = requests.post(
-        "http://127.0.0.1:8000/api/v1/users/test/outbox",
+        OUTBOX_URL,
         json={
-            "type": "Follow",
-            "to": "@alyx"
+            "type": "Follow" if follow else "Unfollow",
+            "to": user
         }, headers={
             "Authorization": f"Bearer {access}",
             "Content-Type": "application/activity+json"
         }, timeout=15)
     assert req.status_code == 200
 
-    print(f"test_follow: req.json() = {req.json()}")
+
+def test_follow():
+    assert get_total_following() == 0
+    follow_unfollow("@alyx")
     time.sleep(5)  # wait for the follow to be processed
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 1
+    assert get_total_following() == 1
 
 
 def test_unfollow():
-    access = get_access()
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 1
-
-    req = requests.post(
-        "http://127.0.0.1:8000/api/v1/users/test/outbox",
-        json={
-            "type": "Unfollow",
-            "to": "@alyx"
-        }, headers={
-            "Authorization": f"Bearer {access}",
-            "Content-Type": "application/activity+json"
-        }, timeout=15)
-    assert req.status_code == 200
-
-    print(f"test_unfollow: req.json() = {req.json()}")
+    assert get_total_following() == 1
+    follow_unfollow("@alyx", follow=False)
     time.sleep(5)  # wait for the unfollow to be processed
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 0
+    assert get_total_following() == 0
 
 
 def test_follow_external():
-    access = get_access()
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 0
-
-    req = requests.post(
-        "http://127.0.0.1:8000/api/v1/users/test/outbox",
-        json={
-            "type": "Follow",
-            "to": random_user
-        }, headers={
-            "Authorization": f"Bearer {access}",
-            "Content-Type": "application/activity+json"
-        }, timeout=15)
-    assert req.status_code == 200
-
-    print(f"test_follow_external: req.json() = {req.json()}")
+    assert get_total_following() == 0
+    follow_unfollow(random_user)
     time.sleep(5)  # wait for the follow to be processed
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 1
+    assert get_total_following() == 1
 
 
 def test_unfollow_external():
-    access = get_access()
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 1
-
-    req = requests.post(
-        "http://127.0.0.1:8000/api/v1/users/test/outbox",
-        json={
-            "type": "Unfollow",
-            "to": random_user
-        }, headers={
-            "Authorization": f"Bearer {access}",
-            "Content-Type": "application/activity+json"
-        }, timeout=15)
-    assert req.status_code == 200
-
-    print(f"test_unfollow_external: req.json() = {req.json()}")
+    assert get_total_following() == 1
+    follow_unfollow(random_user, follow=False)
     time.sleep(5)  # wait for the unfollow to be processed
-
-    req = requests.get(
-        "http://127.0.0.1:8000/api/v1/users/test/following", timeout=15)
-    res = req.json()
-
-    assert res["totalItems"] == 0
+    assert get_total_following() == 0
 
 
 if __name__ == "__main__":
