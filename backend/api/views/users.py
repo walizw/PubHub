@@ -73,7 +73,11 @@ class InboxAPIView (generics.GenericAPIView):
 
             actor_profile = Profile.objects.filter(id=act.get("actor"))
             object_profile = Profile.objects.filter(id=act.get("object"))
-            if len(actor_profile) == 0 or len(object_profile) == 0:
+            if len(object_profile) == 0:
+                # TODO: Discover this user and create its profile
+                pass
+            
+            if len(actor_profile) == 0:
                 return False
 
             actor_profile = actor_profile[0]
