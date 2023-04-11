@@ -29,11 +29,7 @@ class InstanceInboxAPIView (generics.GenericAPIView):
             if act_object["type"] == "Note":
                 actor_profile = Profile.objects.get(id=act.actor)
                 if actor_profile is None:
-                    # TODO: Convert the actor url to a profile id
-                    # In the format of @username@domain.tld and call discover
-                    # on that user, so it creates a profile. For now, return
-                    # unimplemented
-                    return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+                    discovery.discover_by_user_link(act.actor)
 
                 note = Note()
                 note.id = act_object["id"]

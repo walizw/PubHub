@@ -2,6 +2,7 @@ from .discovery import discover_user
 from .request import build_signed_request
 
 from ..models import ActivityUser, Activity, DiscoveredInstances, Note, Profile, Follow
+from ..utils import discovery
 
 from django.conf import settings
 
@@ -44,6 +45,7 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
     }
 
     if is_following(follow_activity["actor"], follow_activity["object"]):
+        print("is following")
         return False
 
     external_inbox = external_url + \
@@ -107,17 +109,15 @@ def unfollow(user: ActivityUser, user_data: dict) -> bool:
     act[0].delete()
 
     # delete the follow activity
-    # actor_profile = Profile.objects.filter(id=unfollow_activity["actor"])
-    # object_profile = Profile.objects.filter(
-    #    id=unfollow_activity["object"]["object"])
-    # if len(actor_profile) == 0 or len(object_profile) == 0:
-    #    return False
+    actor_profile = Profile.objects.filter(id=unfollow_activity["actor"])
+    object_profile = Profile.objects.filter(
+        id=unfollow_activity["object"]["object"])
 
-    # follow = Follow.objects.filter(
-    #    actor=actor_profile[0], object=object_profile[0])
-    # if len(follow) == 0:
-    #    return False
-    # follow.delete()
+    if len(actor_profile) == 0:
+        discovery.discover_by_user_link(unfollow_activity["actor"])
+
+    if len(object_profile) == 0:
+        discovery.discover_by_user_link(unfollow_activity["object"]["object"])
 
     # Remove one from `following'
     user.following -= 1
@@ -225,16 +225,6 @@ def delete_post(user: ActivityUser, post_id: str) -> bool:
 
 
 def send_accept(user: ActivityUser, activity: dict) -> bool:
-    act = Activity.objects.filter(id=activity["id"])
-
-    if len(act) == 0:
-        act = Activity()
-        act.id = activity["id"]
-        act.type = activity["type"]
-        act.actor = activity["actor"]
-        act.object = activity["object"]
-        act.save()
-
     accept_activity = {
         "@context": "https://www.w3.org/ns/activitystreams",
         "id": f"https://{settings.AP_HOST}/api/v1/users/{user.username}/accept/{str(uuid.uuid4())}",
@@ -252,28 +242,10 @@ def send_accept(user: ActivityUser, activity: dict) -> bool:
     if req.status_code < 200 or req.status_code >= 300:
         return False
 
-    # Create the activity
-    act = Activity()
-    act.id = accept_activity["id"]
-    act.type = accept_activity["type"]
-    act.actor = accept_activity["actor"]
-    act.object = accept_activity["object"]
-    act.save()
-
     return True
 
 
 def process_accept(user: ActivityUser, activity: dict) -> bool:
-    act = Activity.objects.filter(id=activity["object"]["id"])
-
-    if len(act) == 0:
-        act = Activity()
-        act.id = activity["object"]["id"]
-        act.type = activity["object"]["type"]
-        act.actor = activity["object"]["actor"]
-        act.object = activity["object"]["object"]
-        act.save()
-
     # when the user receives a follow accept, add one to following.
     if activity["object"]["type"] == "Follow":
         actor_profile = Profile.objects.filter(id=activity["object"]["actor"])

@@ -44,22 +44,48 @@ def discover_user(name: str, host: str) -> dict:
 
     profile = Profile.objects.filter(id=user_link)
     if len(profile) == 0:
-        inbox_req = requests.get(user_link, headers={
-            "Accept": "application/activity+json"
-        }, timeout=5)
-        inbox_res = inbox_req.json()
+        # discover the profile
+        discover_profile(user_link)
 
-        # create the profile
-        profile = Profile()
-        profile.id = user_link
-        profile.preferred_username = inbox_res["preferredUsername"]
-        profile.followers = inbox_res["followers"]
-        profile.following = inbox_res["following"]
-        profile.inbox = inbox_res["inbox"]
-        profile.outbox = inbox_res["outbox"]
-        profile.public_key = inbox_res["publicKey"]["publicKeyPem"]
-        profile.shared_inbox = inbox_res.get("endpoints")["sharedInbox"]
-        profile.save()
+    return res
 
-    # print the response
+
+def discover_profile(user_link: str):
+    profiles = Profile.objects.filter(id=user_link)
+    if len(profiles) > 0:
+        # We already have the profile,
+        return
+
+    req = requests.get(user_link, headers={
+        "Accept": "application/activity+json"
+    }, timeout=5)
+
+    if req.status_code != 200:
+        return None
+
+    res = req.json()
+
+    # create the profile
+    profile = Profile()
+    profile.id = user_link
+    profile.preferred_username = res["preferredUsername"]
+    profile.followers = res["followers"]
+    profile.following = res["following"]
+    profile.inbox = res["inbox"]
+    profile.outbox = res["outbox"]
+    profile.public_key = res["publicKey"]["publicKeyPem"]
+    profile.shared_inbox = res["endpoints"]["sharedInbox"]
+    profile.save()
+
+
+def discover_by_user_link(user_link: str) -> dict:
+    req = requests.get(user_link, headers={
+        "Accept": "application/activity+json"
+    }, timeout=5)
+
+    if req.status_code != 200:
+        return None
+
+    res = req.json()
+
     return res

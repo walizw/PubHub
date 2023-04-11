@@ -74,11 +74,10 @@ class InboxAPIView (generics.GenericAPIView):
             actor_profile = Profile.objects.filter(id=act.get("actor"))
             object_profile = Profile.objects.filter(id=act.get("object"))
             if len(object_profile) == 0:
-                # TODO: Discover this user and create its profile
-                pass
-            
+                discovery.discover_by_user_link(act.get("object"))
+
             if len(actor_profile) == 0:
-                return False
+                discovery.discover_by_user_link(act.get("actor"))
 
             actor_profile = actor_profile[0]
             object_profile = object_profile[0]
@@ -255,7 +254,7 @@ class FollowingAPIView (generics.GenericAPIView):
                 "@context": "https://www.w3.org/ns/activitystreams",
                 "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/following",
                 "type": "OrderedCollection",
-                "totalItems": pages,
+                "totalItems": total_following,
                 "first": f"https://{settings.AP_HOST}/api/v1/users/{username}/following?page=1",
                 "last": f"https://{settings.AP_HOST}/api/v1/users/{username}/following?page={pages}"
             }, status=status.HTTP_200_OK)
