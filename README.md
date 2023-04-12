@@ -1,8 +1,16 @@
 # PubHub
 
-🍄 PubHub is a simple ActivityPub server. It is meant to be used as a starting
-point for other projects or a complete backend for your decentralised
-application. 🌸
+PubHub is a an ActivityPub server implementation in python using the **Django**
+framework. PubHub is meant to be used as a template for an existing project or
+a backend for your own ActivityPub server. This is still in development and
+should not be used in production.
+
+![](https://img.shields.io/github/issues/walizw/PubHub)
+![](https://img.shields.io/github/repo-size/walizw/PubHub)
+![](https://img.shields.io/github/issues-closed/walizw/PubHub)
+![](https://img.shields.io/github/license/walizw/PubHub)
+![](https://img.shields.io/github/stars/walizw/PubHub)
+![](https://img.shields.io/github/commit-activity/m/walizw/PubHub)
 
 ## Quickstart
 
