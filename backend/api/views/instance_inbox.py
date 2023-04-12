@@ -41,9 +41,17 @@ class InstanceInboxAPIView (generics.GenericAPIView):
 
                 return Response("Posted", status=status.HTTP_201_CREATED)
         elif data_json["type"] == "Delete":
-            # TODO: Delete external posts
+
+            # if it's not a dict
             if type(data_json["object"]) != dict:
-                return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+                # check if it's a user
+                profile = Profile.objects.filter(id=data_json["object"])
+                if len(profile) > 0:
+                    profile.delete()
+                    return Response("Deleted", status=status.HTTP_200_OK)
+
+                # it's not a user, can it be anything else?
+                return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
             # get the type of the object
             object_type = data_json["object"]["type"]
@@ -64,7 +72,6 @@ class InstanceInboxAPIView (generics.GenericAPIView):
 
                 # delete the post
                 post.delete()
-            else:
-                return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
-            return Response("Deleted", status=status.HTTP_200_OK)
+
+                return Response("Deleted", status=status.HTTP_200_OK)
         return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)
