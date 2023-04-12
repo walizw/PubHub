@@ -145,7 +145,7 @@ and attachments.
 You can also delete a post, by posting the *Delete* activity type to a user's
 outbox with the post id:
 
-```bash
+```json
 {
   "status": "Delete",
   "id": "post-id-goes-here"

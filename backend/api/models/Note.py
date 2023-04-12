@@ -11,6 +11,9 @@ class Note (models.Model):
     published = models.DateTimeField()
     tags = models.TextField(null=True, blank=True)
 
+    likes = models.IntegerField(default=0)
+    announcements = models.IntegerField(default=0)
+
     # TODO: Handle attachments and mentions
 
     def __str__(self):

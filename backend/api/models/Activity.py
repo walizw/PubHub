@@ -22,4 +22,4 @@ class Activity(models.Model):
     deleted = models.DateTimeField(null=True)
 
     def __str__(self) -> str:
-        return f"{self.id} - {self.type} - {self.actor}"
+        return f"{self.actor} - {self.type} - {self.object}"
