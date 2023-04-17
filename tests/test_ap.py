@@ -32,6 +32,22 @@ def get_total_following():
     return res["totalItems"]
 
 
+def get_total_posts():
+    req = requests.get(
+        "http://127.0.0.1:8000/api/v1/users/test/posts", timeout=15)
+    res = req.json()
+
+    return res["totalItems"]
+
+
+def get_posts(page=1):
+    req = requests.get(
+        f"http://127.0.0.1:8000/api/v1/users/test/posts?page={page}", timeout=15)
+    res = req.json()
+
+    return res["orderedItems"]
+
+
 def follow_unfollow(user: str, follow=True):
     access = get_access()
 
@@ -40,6 +56,36 @@ def follow_unfollow(user: str, follow=True):
         json={
             "type": "Follow" if follow else "Unfollow",
             "to": user
+        }, headers={
+            "Authorization": f"Bearer {access}",
+            "Content-Type": "application/activity+json"
+        }, timeout=15)
+    assert req.status_code == 200
+
+
+def post(content: str):
+    access = get_access()
+
+    req = requests.post(
+        "http://127.0.0.1:8000/api/v1/users/test/outbox",
+        json={
+            "type": "Note",
+            "content": content
+        }, headers={
+            "Authorization": f"Bearer {access}",
+            "Content-Type": "application/activity+json"
+        }, timeout=15)
+    assert req.status_code == 200
+
+
+def delete_post(id: str):
+    access = get_access()
+
+    req = requests.post(
+        f"http://127.0.0.1:8000/api/v1/users/test/outbox",
+        json={
+            "type": "Delete",
+            "id": id
         }, headers={
             "Authorization": f"Bearer {access}",
             "Content-Type": "application/activity+json"
@@ -75,8 +121,25 @@ def test_unfollow_external():
     assert get_total_following() == 0
 
 
+def test_post():
+    assert get_total_posts() == 0
+    post("Hello world!")
+    time.sleep(5)  # wait for the post to be processed
+    assert get_total_posts() == 1
+
+
+def test_delete_post():
+    assert get_total_posts() == 1
+    last_post = get_posts()[0]
+    delete_post(last_post["id"])
+    time.sleep(5)  # wait for the post to be deleted
+    assert get_total_posts() == 0
+
+
 if __name__ == "__main__":
     test_follow()
     test_unfollow()
     test_follow_external()
     test_unfollow_external()
+    test_post()
+    test_delete_post()

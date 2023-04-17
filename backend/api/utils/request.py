@@ -43,6 +43,9 @@ def build_signed_request(user: ActivityUser, dst_inbox: str, cnt: dict) -> reque
     cnt_str = json.dumps(cnt)
     digest = base64.b64encode(hashlib.sha256(cnt_str.encode("utf-8")).digest())
 
+    if isinstance(dst_host, bytes) or isinstance(dst_path, bytes):
+        return requests.Response()
+
     signature_txt = b'(request-target): post %s\ndigest: SHA-256=%s\nhost: %s\ndate: %s' % (
         dst_path.encode("utf-8"),
         digest,

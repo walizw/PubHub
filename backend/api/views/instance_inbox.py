@@ -27,13 +27,16 @@ class InstanceInboxAPIView (generics.GenericAPIView):
 
             act_object = data_json["object"]
             if act_object["type"] == "Note":
-                actor_profile = Profile.objects.get(id=act.actor)
-                if actor_profile is None:
+                actor_profile = Profile.objects.filter(id=act.actor)
+                if len(actor_profile) == 0:
                     discovery.discover_by_user_link(act.actor)
+
+                actor_profile = Profile.objects.get(id=act.actor)
+                actor = actor_profile
 
                 note = Note()
                 note.id = act_object["id"]
-                note.actor = actor_profile
+                note.actor = actor
                 note.content = act_object["content"]
                 note.published = act_object["published"]
                 note.tags = act_object["tag"]
@@ -58,8 +61,8 @@ class InstanceInboxAPIView (generics.GenericAPIView):
 
             if object_type == "Note":
                 post_id = data_json["object"]["id"]
-                post = Note.objects.get(id=post_id)
-                if post is None:
+                post = Note.objects.filter(id=post_id)
+                if len(post) == 0:
                     return Response(status=status.HTTP_404_NOT_FOUND)
 
                 # create and store the delete activity
@@ -71,7 +74,7 @@ class InstanceInboxAPIView (generics.GenericAPIView):
                 act.save()
 
                 # delete the post
-                post.delete()
+                post[0].delete()
 
                 return Response("Deleted", status=status.HTTP_200_OK)
         return Response("Unimplemented", status=status.HTTP_501_NOT_IMPLEMENTED)

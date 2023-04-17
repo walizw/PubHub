@@ -21,4 +21,6 @@ urlpatterns = [
          views.FollowersAPIView.as_view(), name="followers"),
     path("api/v1/users/<str:username>/following",
          views.FollowingAPIView.as_view(), name="following"),
+    path("api/v1/users/<str:username>/posts",
+         views.PostsAPIView.as_view(), name="posts")
 ]

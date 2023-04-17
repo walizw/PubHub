@@ -88,4 +88,9 @@ def discover_by_user_link(user_link: str) -> dict:
 
     res = req.json()
 
+    profile = Profile.objects.filter(id=user_link)
+    if len(profile) == 0:
+        # discover the profile
+        discover_profile(user_link)
+
     return res

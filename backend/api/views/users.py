@@ -3,7 +3,7 @@ from rest_framework import generics, status
 
 from django.conf import settings
 
-from ..models import ActivityUser, Activity, Profile, Follow
+from ..models import ActivityUser, Activity, Profile, Follow, Note
 
 from ..utils import discovery
 from ..utils import users as ap_users
@@ -275,6 +275,54 @@ class FollowingAPIView (generics.GenericAPIView):
             "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page}",
             "type": "OrderedCollectionPage",
             "totalItems": total_following,
+            "partOf": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
+            "orderedItems": ordered_items
+        }, status=status.HTTP_200_OK)
+
+
+class PostsAPIView (generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        username = kwargs.get("username")
+        user = ActivityUser.objects.filter(username=username)
+        if len(user) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        posts = Note.objects.filter(
+            actor=f"https://{settings.AP_HOST}/api/v1/users/{username}").order_by("-id")
+        total_posts = len(posts)
+        items_per_page = 30
+
+        pages = math.ceil(total_posts / items_per_page)
+        if not request.GET.get("page"):
+            return Response({
+                "@context": "https://www.w3.org/ns/activitystreams",
+                "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/posts",
+                "type": "OrderedCollection",
+                "totalItems": total_posts,
+                "first": f"https://{settings.AP_HOST}/api/v1/users/{username}/posts?page=1",
+                "last": f"https://{settings.AP_HOST}/api/v1/users/{username}/posts?page={pages}"
+            }, status=status.HTTP_200_OK)
+
+        page = int(request.GET.get("page"))
+        if page > pages or page == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        ordered_items = []
+        for post in posts:
+            ordered_items.append({
+                "id": post.id,
+                "type": "Note",
+                "content": post.content,
+                "tags": post.tags,
+                "published": post.published,
+                "likes": post.likes,
+            })
+
+        return Response({
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers?page={page}",
+            "type": "OrderedCollectionPage",
+            "totalItems": total_posts,
             "partOf": f"https://{settings.AP_HOST}/api/v1/users/{username}/followers",
             "orderedItems": ordered_items
         }, status=status.HTTP_200_OK)

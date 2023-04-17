@@ -45,7 +45,6 @@ def follow(user: ActivityUser, user_data: dict) -> bool:
     }
 
     if is_following(follow_activity["actor"], follow_activity["object"]):
-        print("is following")
         return False
 
     external_inbox = external_url + \
@@ -183,7 +182,6 @@ def post(user: ActivityUser, data: dict, to: str) -> str:
     discovered_instances = DiscoveredInstances.objects.all()
     for instance in discovered_instances:
         req = build_signed_request(user, instance.inbox, post_activity)
-        print(req.text, req.status_code)
 
     return post_id
 
@@ -225,7 +223,6 @@ def delete_post(user: ActivityUser, post_id: str) -> bool:
     discovered_instances = DiscoveredInstances.objects.all()
     for instance in discovered_instances:
         req = build_signed_request(user, instance.inbox, delete_activity)
-        print(req.text, req.status_code)
 
     return True
 
