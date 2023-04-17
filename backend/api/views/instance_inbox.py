@@ -59,7 +59,7 @@ class InstanceInboxAPIView (generics.GenericAPIView):
             # get the type of the object
             object_type = data_json["object"]["type"]
 
-            if object_type == "Note":
+            if object_type == "Tombstone":
                 post_id = data_json["object"]["id"]
                 post = Note.objects.filter(id=post_id)
                 if len(post) == 0:
